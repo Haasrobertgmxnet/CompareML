@@ -29,7 +29,7 @@ namespace Helper {
         {
             if (outputAtExit)
             {
-                std::cout << "Time difference needed for program execution: " << getDuration().count() << " Milliseconds.\n";
+                std::cout << "Destructor called: Time difference needed for program execution: " << getDuration().count() << " Milliseconds.\n";
             }
         }
 
