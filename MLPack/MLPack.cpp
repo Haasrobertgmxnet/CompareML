@@ -1,11 +1,18 @@
-/**
- * Ein Besispiel zum Feed Forward Neural Network (FFN)
+﻿/**
+ * Feed Forward Neural Network (FFN) for
+ * five use cases:
+ * 1. Iris dataset
+ * 2. Wine dataset
+ * 3. Ionosphere dataset
+ * 4. Breast cancer dataset
+ * 5. Pima diabetes dataset
  *
  * @author Robert Haas
  */
 #define MLPACK_ENABLE_ANN_SERIALIZATION
 #include <algorithm>
 #include <mlpack.hpp>
+#include "MetaData.h"
 #include "PathNameService.h"
 #include "Timer.h"
 
@@ -15,7 +22,11 @@
 #endif
 
 using namespace mlpack;
-using std::cout, std::endl;
+
+template<typename T>
+void printModel(const T& model) {
+    // to be implemented
+}
 
 arma::Row<size_t> getLabels(arma::mat predOut)
 {
@@ -27,21 +38,17 @@ arma::Row<size_t> getLabels(arma::mat predOut)
     return predLabels;
 }
 
-// Standard-Scaler zur Skalierung der Feature-Variablen
-// X neu = ( X alt - Mittelwert ) / Standardabweichung
+// Standard scaler for scaling of the feature variables
+// X new = ( X old - arithmetic mean ) / standard deviation
 class StandardScaler {
 public:
     StandardScaler(const arma::mat& _in) :
         mean{ arma::mean(_in, 1) }, std{ arma::stddev(_in, 0, 1) }
     {
-        std::cout << "Mean: \n" << mean << std::endl;
-        std::cout << "Constructor -called\n";
+        std::cout << "Constructor\n";
     }
 
     void transform(arma::mat& _in) {
-        std::cout << "Mean: \n" << mean << std::endl;
-        std::cout << "Mean: \n";
-        mean.print();
         _in = _in.each_col() - mean;
         _in = _in.each_col() / std;
     }
@@ -60,32 +67,42 @@ private:
 
 int main()
 {
-    // Timer-Objekt zur Zeitmessung
-    Helper::Timer timer{};
+    
+    // Timer object for measuring the execution time
+    Helper::Timer tim;
 
-    // Pfadname-Variable f�r verschiedene Pfadnamen
-    std::string pathName{};
+    // The use cases
+    // in future versions this will be stored in a (json) config
+    constexpr Helper::MLCase currentCase{ Helper::MLCase::Iris };
+    //constexpr Helper::MLCase currentCase{ Helper::MLCase::Wine };
+    //constexpr Helper::MLCase currentCase{ Helper::MLCase::Ionosphere };
+    //constexpr Helper::MLCase currentCase{ Helper::MLCase::Cancer };
+    //constexpr Helper::MLCase currentCase{ Helper::MLCase::Diabetes };
 
+#ifdef STATIC_AT_COMPILE_TIME
+    auto cas{ std::get<static_cast<size_t>(currentCase)>(metaDataArray.data) };
+#else
+    auto cas{ metaDataArray[currentCase]};
+#endif
 
     // Dataset is randomly split into validation
     // and training parts in the following ratio.
     constexpr double RATIO = 0.1;
-    // The number of neurons in the first layer.
-    constexpr int H1 = 15;
-    // The number of neurons in the second layer.
-    constexpr int H2 = 6;
     // Step size of the optimizer.
     const double STEP_SIZE = 2e-4;
     // Number of data points in each iteration of SGD
     const size_t BATCH_SIZE = 64;
     // Allow up to 50 epochs, unless we are stopped early by EarlyStopAtMinLoss.
-    const int EPOCHS = 150;
+    const int EPOCHS = 400;
 
     // Labeled dataset that contains data for training is loaded from CSV file,
     // rows represent features, columns represent data points.
-    pathName = Helper::PathNameService::findFileAboveCurrentDirectory("iris_train.csv").value();
+    // Pfadname-Variable für verschiedene Pfadnamen
+    std::string pathName{};
+    pathName = Helper::PathNameService::findFileAboveCurrentDirectory(std::string{ cas.fileName }).value();
     arma::mat dataset{};
     data::Load(pathName, dataset, true);
+    std::cout << "File " << std::string{ cas.fileName } << " loaded!\n";
 
       // Originally on Kaggle dataset CSV file has header, so it's necessary to
       // get rid of the this row, in Armadillo representation it's the first column.
@@ -103,15 +120,11 @@ int main()
     arma::mat train, valid;
     data::Split(no_test, train, valid, 0.1);
 
-    // Getting training and validating dataset with features only and then
-    // normalising
-    arma::mat trainX =
-        train.submat(0, 0, train.n_rows - 2, train.n_cols - 1);
-    arma::mat validX =
-        valid.submat(0, 0, valid.n_rows - 2, valid.n_cols - 1);
-    arma::mat testX =
-        test.submat(0, 0, test.n_rows - 2, test.n_cols - 1);
+    arma::mat trainX = train.submat(0, 0, train.n_rows - 2, train.n_cols - 1);
+    arma::mat validX = valid.submat(0, 0, valid.n_rows - 2, valid.n_cols - 1);
+    arma::mat testX = test.submat(0, 0, test.n_rows - 2, test.n_cols - 1);
 
+    // Notwendige Skalierung der Trainingsdaten
     StandardScaler stScaler{ trainX };
     stScaler.transform(trainX);
     stScaler.transform(validX);
@@ -132,22 +145,26 @@ int main()
     // This is intermediate layer that is needed for connection between input
     // data and relu layer. Parameters specify the number of input features
     // and number of neurons in the next layer.
-    model.Add<Linear>(H1);
-    // The first relu layer.
-    model.Add<ReLU>();
-    // Intermediate layer between relu layers.
-    model.Add<Linear>(H2);
-    // The second relu layer.
-    model.Add<ReLU>();
+
+    // Add the hidden layers to the neural network
+    for (auto&& item : cas.hiddenNodes) {
+        std::cout << "Versteckte Schicht mit " << item << " Knoten.\n";
+        model.Add<Linear>(item);
+        // the activation function - here it is ReLU, i.e. x for x>=0 and 0 for x<0
+        model.Add<ReLU>();
+    }
+
     // Dropout layer for regularization. First parameter is the probability of
     // setting a specific value to 0.
-    model.Add<Dropout>(0.2);
-    // Intermediate layer.
-    model.Add<Linear>(10);
+    // model.Add<Dropout>(0.1);
+    // Ausgabeschicht / Output layer
+    std::cout << "Ausgabeschicht mit " << cas.outputNodes << " Knoten.\n";
+    model.Add<Linear>(cas.outputNodes);
     // LogSoftMax layer is used together with NegativeLogLikelihood for mapping
     // output values to log of probabilities of being a specific class.
     model.Add<LogSoftMax>();
 
+    printModel<FFN<NegativeLogLikelihood, GlorotInitialization>>(model);
     std::cout << "Start training ..." << std::endl;
 
     // Set parameters for the Adam optimizer.
@@ -177,8 +194,19 @@ int main()
             [&](const arma::mat& /* param */)
             {
                 double validationLoss = model.Evaluate(validX, validY);
-                cout << "Validation loss: " << validationLoss << "."
-                    << endl;
+                double l2Penalty = 0.0;
+                for (size_t i = 0; i < model.Network().size(); ++i)
+                {
+                    if (auto* linear = dynamic_cast<Linear*>(model.Network()[i]))
+                    {
+                        l2Penalty += arma::accu(arma::square(linear->Parameters()));
+                    }
+                }
+
+                double lambda = 0.0;
+                validationLoss += lambda * l2Penalty;
+                std::cout << "Validation loss: " << validationLoss << "."
+                    << std::endl;
                 return validationLoss;
             }),
         // Store best coordinates (neural network weights)
@@ -201,12 +229,12 @@ int main()
     double validAccuracy =
         arma::accu(predLabels == validY) / (double)validY.n_elem * 100;
 
-    cout << "Accuracy: train = " << trainAccuracy << "%,"
-        << "\t valid = " << validAccuracy << "%" << endl;
+    std::cout << "Accuracy: train = " << trainAccuracy << "%,"
+        << "\t valid = " << validAccuracy << "%" << std::endl;
 
     // data::Save("model.bin", "model", model, false);
 
-    cout << "Predicting on test set..." << endl;
+    std::cout << "Predicting on test set..." << std::endl;
     arma::mat testPredOut;
     // Getting predictions on test data points.
     model.Predict(testX, testPredOut);
@@ -214,12 +242,12 @@ int main()
     arma::Row<size_t> testPred = getLabels(testPredOut);
 
     double testAccuracy = arma::accu(testPred == testY) /
-        (double)testY.n_elem * 100;
-    cout << "Accuracy: test = " << testAccuracy << "%" << endl;
+        static_cast<double>(testY.n_elem) * 100.0;
+    std::cout << "Accuracy: test = " << testAccuracy << "%" << std::endl;
 
-    cout << "Saving predicted labels to \"results.csv\" ..." << endl;
+    std::cout << "Saving predicted labels to \"results.csv\" ..." << std::endl;
     testPred.save("results.csv", arma::csv_ascii);
 
-    cout << "Neural network model is saved to \"model.bin\"" << endl;
-    cout << "Finished" << endl;
+    std::cout << "Neural network model is saved to \"model.bin\"" << std::endl;
+    std::cout << "Finished" << std::endl;
 }

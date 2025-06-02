@@ -19,10 +19,10 @@ using namespace opennn;
 
 #include <tuple>  
 
-template <typename... MetaDataTypes>  
-std::tuple<MetaDataTypes...> convertToTuple(const Helper::MetaDataArray<MetaDataTypes...>& metaDataArray) {  
-    return metaDataArray.data;  
-}  
+//template <typename... MetaDataTypes>  
+//std::tuple<MetaDataTypes...> convertToTuple(const Helper::FFNStructureDataArray<MetaDataTypes...>& metaDataArray) {  
+//    return metaDataArray.data;  
+//}  
 
 #ifdef _DEBUG
 
