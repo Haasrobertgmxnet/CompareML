@@ -82,7 +82,8 @@ int main()
 #ifdef STATIC_AT_COMPILE_TIME
     auto cas{ std::get<static_cast<size_t>(currentCase)>(metaDataArray.data) };
 #else
-    auto cas{ metaDataArray[currentCase]};
+    // auto cas{ metaDataArray[currentCase]};
+    auto cas{ std::get<static_cast<size_t>(currentCase)>(metaDataArray.data) };
 #endif
 
     // Dataset is randomly split into validation
@@ -99,10 +100,10 @@ int main()
     // rows represent features, columns represent data points.
     // Pfadname-Variable für verschiedene Pfadnamen
     std::string pathName{};
-    pathName = Helper::PathNameService::findFileAboveCurrentDirectory(std::string{ cas.fileName }).value();
+    pathName = Helper::PathNameService::findFileAboveCurrentDirectory(std::string{ cas.mlpackFile }).value();
     arma::mat dataset{};
     data::Load(pathName, dataset, true);
-    std::cout << "File " << std::string{ cas.fileName } << " loaded!\n";
+    std::cout << "File " << std::string{ cas.mlpackFile } << " loaded!\n";
 
       // Originally on Kaggle dataset CSV file has header, so it's necessary to
       // get rid of the this row, in Armadillo representation it's the first column.
@@ -124,7 +125,7 @@ int main()
     arma::mat validX = valid.submat(0, 0, valid.n_rows - 2, valid.n_cols - 1);
     arma::mat testX = test.submat(0, 0, test.n_rows - 2, test.n_cols - 1);
 
-    // Notwendige Skalierung der Trainingsdaten
+    // Scaling of the training data - necessary for numerical stability
     StandardScaler stScaler{ trainX };
     stScaler.transform(trainX);
     stScaler.transform(validX);
