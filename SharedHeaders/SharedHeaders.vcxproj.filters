@@ -24,5 +24,8 @@
     <ClInclude Include="MetaData.h">
       <Filter>Headerdateien</Filter>
     </ClInclude>
+    <ClInclude Include="NeuralNetworkArchitecture.h">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

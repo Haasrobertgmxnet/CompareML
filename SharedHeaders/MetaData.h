@@ -6,12 +6,46 @@
 #include <tuple>
 
 namespace Helper {
-	enum class MLCase : std::size_t {
+	constexpr enum class MLCase : const std::size_t {
 		Iris = 0,
 		Wine = 1,
 		Ionosphere = 2,
 		Cancer = 3,
 		Diabetes = 4
+	};
+}
+
+namespace Helper {
+	struct DataConfig {
+		bool isActive{};
+		std::string_view name{};
+	};
+
+	std::map<MLCase, DataConfig> DataConfigAll = {
+		{Helper::MLCase::Iris, {.isActive = true, .name ="Iris"}},
+		{Helper::MLCase::Wine, {.isActive = true, .name = "Wine"}},
+		{Helper::MLCase::Cancer, {.isActive = false, .name = "Cancer"}},
+		{Helper::MLCase::Diabetes, {.isActive = false, .name = "Diabetes"}},
+		{Helper::MLCase::Ionosphere, {.isActive = false, .name = "Ionosphere"}},
+	};
+}
+namespace Helper {
+	std::map<MLCase, std::string_view> OpenNNDataFiles = {
+		{Helper::MLCase::Iris, "iris_opennn.csv"},
+		{Helper::MLCase::Wine, "wine_opennn.csv"},
+		{Helper::MLCase::Cancer, "cancer_opennn.csv"},
+		{Helper::MLCase::Diabetes, "diabetes_opennn.csv"},
+		{Helper::MLCase::Ionosphere, "ionosphere_opennn.csv"}
+	};
+}
+
+namespace Helper {
+	const std::map<const MLCase, const std::string_view> MLPackDataFiles = {
+		{Helper::MLCase::Iris, "iris_mlpack.csv"},
+		{Helper::MLCase::Wine, "wine_mlpack.csv"},
+		{Helper::MLCase::Cancer, "cancer_mlpack.csv"},
+		{Helper::MLCase::Diabetes, "diabetes_mlpack.csv"},
+		{Helper::MLCase::Ionosphere, "ionosphere_mlpack.csv"}
 	};
 }
 
@@ -162,7 +196,7 @@ namespace Helper {
 		const std::vector<size_t> hiddenNodes{};
 		const size_t outputNodes{};
 		const double dropoutRatio{};
-		const std::initializer_list<size_t>{};
+		const std::initializer_list<size_t> initList{};
 	};
 
 	struct FFNStructureDataArray {

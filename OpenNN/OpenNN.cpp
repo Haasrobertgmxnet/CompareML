@@ -9,6 +9,7 @@
 #include "opennn.h"
 #include "opennn_strings.h"
 #include "MetaData.h"
+#include "NeuralNetworkArchitecture.h"
 #include "PathNameService.h"
 #include "Timer.h"
 
@@ -97,8 +98,6 @@ int runIrisExample() {
 
 		// Data set
 
-		// DataSet data_set("../data/iris_plant_original.csv", ';', true);
-
 		DataSet data_set("../data/opennn/iris_opennn.csv", ';', false);
 
 		const Index input_variables_number = data_set.get_input_variables_number();
@@ -108,22 +107,16 @@ int runIrisExample() {
 		std::cout << "Target variables: " << target_variables_number << std::endl;
 
 		// Neural network
-
 		const Index hidden_neurons_number = 3;
-
 		NeuralNetwork neural_network(NeuralNetwork::ProjectType::Classification, { input_variables_number, hidden_neurons_number, target_variables_number });
 
-		// Training strategy
-
 		TrainingStrategy training_strategy(&neural_network, &data_set);
-
 		training_strategy.set_maximum_epochs_number(2000);
 		training_strategy.set_loss_method(TrainingStrategy::LossMethod::NORMALIZED_SQUARED_ERROR);
 		training_strategy.set_optimization_method(TrainingStrategy::OptimizationMethod::ADAPTIVE_MOMENT_ESTIMATION);
 		training_strategy.perform_training();
 
 		// Testing analysis
-
 		const TestingAnalysis testing_analysis(&neural_network, &data_set);
 
 		const Tensor<Index, 2> confusion = testing_analysis.calculate_confusion();
@@ -140,150 +133,105 @@ int runIrisExample() {
 
 
 		outputs = neural_network.calculate_outputs(inputs.data(), inputs_dimensions);
-
 		std::cout << "\nInputs:\n" << inputs << std::endl;
-
 		std::cout << "\nOutputs:\n" << outputs << std::endl;
-
 		std::cout << "\nConfusion matrix:\n" << confusion << std::endl;
 
 		// Save results
+		neural_network.save("../data/opennn/iris_nn.xml");
+		neural_network.save_expression_c("../data/opennn/iris_nn.c");
 
-		neural_network.save("../data/neural_network.xml");
-		neural_network.save_expression_c("../data/neural_network.c");
-
-		layerInfo(neural_network);
 		std::cout << "Bye!" << std::endl;
 		return 0;
 	}
 	catch (const exception& e)
 	{
 		std::cout << e.what() << std::endl;
-
 		return 1;
 	}
 }
 
-int main()
-{
-	runIrisExample();
-	Helper::Timer tim;
+void calc() {
+	for (size_t&& j : { 0,1,2,3,4 }) {
+		const Helper::MLCase currentCase{ static_cast<const Helper::MLCase>(j) };
+		if(!Helper::DataConfigAll[currentCase].isActive) {
+			continue;
+		}
 
-	// The use cases
-	// in future versions this will be stored in a (json) config
-	constexpr Helper::MLCase currentCase{ Helper::MLCase::Iris };
-	//constexpr Helper::MLCase currentCase{ Helper::MLCase::Wine };
-	//constexpr Helper::MLCase currentCase{ Helper::MLCase::Ionosphere };
-	//constexpr Helper::MLCase currentCase{ Helper::MLCase::Cancer };
-	//constexpr Helper::MLCase currentCase{ Helper::MLCase::Diabetes };
+		// Read data
+		auto pathRes = Helper::PathNameService::findFileAboveCurrentDirectory(std::string{ Helper::OpenNNDataFiles[currentCase] });
+		if (!pathRes.has_value()) {
+			continue;
+		}
+		auto pathName = std::string{ pathRes.value() };
+		DataSet data_set(pathName, ';', false);
+		const Index input_variables_number = data_set.get_input_variables_number();
 
-#ifdef STATIC_AT_COMPILE_TIME
-	auto cas{ std::get<static_cast<size_t>(currentCase)>(metaDataArray.data) };
-#elif defined USE_INITIALIZER_LIST
-	auto cas{ std::get<static_cast<size_t>(currentCase)>(metaDataArray.data) };
-#else
-	auto cas{ metaDataArray[currentCase] };
-#endif
+		// Construct neural network architecture
+		auto currentNeuralNetworkArchitecture = Helper::ConstructNeuralNetworkExample(currentCase);
+		currentNeuralNetworkArchitecture.print();
 
-	// auto pathName = Helper::PathNameService::findFileAboveCurrentDirectory("iris_plant_original.csv").value();
-	// DataSet data_set(pathName, ';', true);
-
-	auto pathName = std::string{};
-	pathName = Helper::PathNameService::findFileAboveCurrentDirectory(std::string{ cas.opennnFile }).value();
-	// DataSet data_set(pathName, ';', false);
-	DataSet data_set("../data/opennn/iris_opennn.csv", ';', false);
-
-	// data_set.split_samples_random(type(0.6), type(0.1), type(0.3));
-
-#ifdef _DEBUG
-	// printInfo(data_set);
-#endif
-
-	const Index input_variables_number = data_set.get_input_variables_number();
-	const Index target_variables_number = data_set.get_target_variables_number();
-
-	const Index hidden_neurons_number = 3;
-
-	//{
-	//	NeuralNetwork neural_network1(NeuralNetwork::ProjectType::Classification, { input_variables_number, hidden_neurons_number, target_variables_number });
-	//	// neural_network1.set_project_type(NeuralNetwork::ProjectType::Classification);
-	//	TrainingStrategy training_strategy(&neural_network1, &data_set);
-	//	training_strategy.set_maximum_epochs_number(2000);
-	//	training_strategy.set_loss_method(TrainingStrategy::LossMethod::NORMALIZED_SQUARED_ERROR);
-	//	training_strategy.set_optimization_method(TrainingStrategy::OptimizationMethod::ADAPTIVE_MOMENT_ESTIMATION);
-	//	training_strategy.perform_training();
-
-	//	const TestingAnalysis testing_analysis(&neural_network1, &data_set);
-	//	const Tensor<Index, 2> confusion = testing_analysis.calculate_confusion();
-	//	std::cout << "\nConfusion matrix 1:\n" << confusion << std::endl;
-	//}
-	
-	//{
-	//	NeuralNetwork neural_network2(NeuralNetwork::ProjectType::Classification, { });
-	//	// neural_network2.set_project_type(NeuralNetwork::ProjectType::Classification);
-	//	neural_network2.add_layer(new PerceptronLayer(input_variables_number, cas.hiddenNodes[0], PerceptronLayer::ActivationFunction::RectifiedLinear));
-	//	neural_network2.add_layer(new PerceptronLayer(cas.hiddenNodes[0], cas.hiddenNodes[1], PerceptronLayer::ActivationFunction::RectifiedLinear));
-	//	neural_network2.add_layer(new PerceptronLayer(cas.hiddenNodes[1], target_variables_number, PerceptronLayer::ActivationFunction::HyperbolicTangent));
-	//	TrainingStrategy training_strategy(&neural_network2, &data_set);
-	//	training_strategy.set_maximum_epochs_number(2000);
-	//	training_strategy.set_loss_method(TrainingStrategy::LossMethod::NORMALIZED_SQUARED_ERROR);
-	//	training_strategy.set_optimization_method(TrainingStrategy::OptimizationMethod::ADAPTIVE_MOMENT_ESTIMATION);
-	//	training_strategy.perform_training();
-
-	//	const TestingAnalysis testing_analysis(&neural_network2, &data_set);
-	//	const Tensor<Index, 2> confusion = testing_analysis.calculate_confusion();
-	//	std::cout << "\nConfusion matrix 2:\n" << confusion << std::endl;
-	//}
-
-	NeuralNetwork neural_network(NeuralNetwork::ProjectType::Classification, { });
-	// NeuralNetwork neural_network{};
-	neural_network.set_project_type(NeuralNetwork::ProjectType::Classification);
-
-	neural_network.add_layer(new PerceptronLayer(input_variables_number, cas.hiddenNodes[0], PerceptronLayer::ActivationFunction::RectifiedLinear));
-	for (Index j = 1; j < cas.hiddenNodes.size();++j) {
-		neural_network.add_layer(new PerceptronLayer(cas.hiddenNodes[j - 1], cas.hiddenNodes[j], PerceptronLayer::ActivationFunction::RectifiedLinear));
+		NeuralNetwork neural_network{};
+		neural_network.set_inputs_number(input_variables_number);
+		neural_network.set_project_type(NeuralNetwork::ProjectType::Classification);
+		for (auto&& layer : currentNeuralNetworkArchitecture.Layers) {
+			switch (layer.layerType) {
+			case Helper::LayerType::Scaling: {
+				auto current_layer = std::make_unique<ScalingLayer>(layer.inputNodes);
+				neural_network.add_layer(current_layer.release());
+			}
+			break;
+			case Helper::LayerType::Unscaling: {
+				auto current_layer = std::make_unique<UnscalingLayer>(layer.outputNodes);
+				neural_network.add_layer(current_layer.release());
+			}
+			break;
+			case Helper::LayerType::Perceptron: {
+				auto current_layer = std::make_unique<PerceptronLayer>(layer.inputNodes, layer.outputNodes);
+				current_layer->set_activation_function(PerceptronLayer::ActivationFunction::RectifiedLinear);
+				current_layer->set_name(layer.name);
+				neural_network.add_layer(current_layer.release());
+				// This releases the ownership of the uinque_ptr current_layer ...
+				//... to transfer the ownership to the add_layer method of the NeuralNetwork class in OpenNN ...
+				// which should care about a correct object disposal/remove.
+				// !! Cave: Never do neural_network.add_layer(current_layer.get()); !!
+			}
+			break;
+			case Helper::LayerType::Probabilistic:
+			default:
+				auto current_layer = std::make_unique<ProbabilisticLayer>(layer.inputNodes, layer.outputNodes);
+				current_layer->set_activation_function(ProbabilisticLayer::ActivationFunction::Softmax);
+				neural_network.add_layer(current_layer.release());
+			}
+		}
+		
+		
+		layerInfo(neural_network);
+		TrainingStrategy training_strategy(&neural_network, &data_set);
+		training_strategy.set_maximum_epochs_number(5000);
+		training_strategy.set_display_period(100);
+		training_strategy.set_loss_method(TrainingStrategy::LossMethod::NORMALIZED_SQUARED_ERROR);
+		training_strategy.set_optimization_method(TrainingStrategy::OptimizationMethod::ADAPTIVE_MOMENT_ESTIMATION);
+		try {
+			auto results = TrainingResults{ training_strategy.perform_training() };
+			std::cout << "Time: " << results.elapsed_time << std::endl;
+			std::cout << "Epochs: " << results.get_epochs_number() << std::endl;
+			std::cout << "Loss: " << results.get_loss() << std::endl;
+			std::cout << "Training Error: " << results.get_training_error() << std::endl;
+			std::string outpath{ "../data/opennn/" + std::string{ Helper::DataConfigAll[currentCase].name } + "_nn.xml" };
+			neural_network.save(outpath);
+		}
+		catch (std::exception& ex) {
+			std::cout << ex.what() << std::endl;
+		}
 	}
-	//neural_network.add_layer(new PerceptronLayer(cas.hiddenNodes[cas.hiddenNodes.size() - 1], target_variables_number, PerceptronLayer::ActivationFunction::HyperbolicTangent));
-	neural_network.add_layer(new PerceptronLayer(cas.hiddenNodes[cas.hiddenNodes.size() - 1], cas.outputNodes, PerceptronLayer::ActivationFunction::Linear));
-	layerInfo(neural_network);
+}
 
-	TrainingStrategy training_strategy(&neural_network, &data_set);
-	training_strategy.set_maximum_epochs_number(8000);
-	training_strategy.set_loss_method(TrainingStrategy::LossMethod::NORMALIZED_SQUARED_ERROR);
-	training_strategy.set_optimization_method(TrainingStrategy::OptimizationMethod::ADAPTIVE_MOMENT_ESTIMATION);
-	training_strategy.perform_training();
-
-	// Testing analysis
-	const TestingAnalysis testing_analysis(&neural_network, &data_set);
-	
-	const Tensor<Index, 2> confusion = testing_analysis.calculate_confusion();
-
-
-	Tensor<type, 2> inputs(5, neural_network.get_inputs_number());
-	Tensor<type, 2> outputs(5, neural_network.get_outputs_number());
-
-	Tensor<Index, 1> inputs_dimensions = get_dimensions(inputs);
-	Tensor<Index, 1> outputs_dimensions = get_dimensions(outputs);
-
-	inputs.setValues({ {type(5.1),type(3.5),type(1.4),type(0.2)},
-					{type(7.0),type(3.2),type(4.7),type(1.4)},
-					{type(6.3),type(3.3),type(6.0),type(2.5)},
-					{type(6.4),type(3.2),type(4.5),type(1.5)},
-					{type(6.3),type(2.7),type(4.9),type(1.8)},
-		});
-
-
-	outputs = neural_network.calculate_outputs(inputs.data(), inputs_dimensions);
-
-	std::cout << "\nConfusion matrix:\n" << confusion << std::endl;
-
-	std::cout << "\nInputs:\n" << inputs << std::endl;
-
-	std::cout << "\nOutputs:\n" << outputs << std::endl;
-
-	
-
-	std::cout << "Time difference needed for program execution: " << tim.getDuration().count() << " Milliseconds.\n";
-	std::cout << "END!\n";
+int main() {
+	std::cout << "Begin\n";
+	runIrisExample();
+	calc();
 	return 0;
 }
+
+
