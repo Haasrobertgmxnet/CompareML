@@ -5,6 +5,18 @@
 #include <array>
 #include <tuple>
 
+
+namespace Helper {
+	const struct PipelineConfig {
+		static constexpr size_t epochs{ 500 };
+		static constexpr size_t batch_size{ 64 }; // Number of data points in each iteration of the solver
+		static constexpr float learning_rate{ 0.01f }; // Step size of the optimizer which is the initial learning rate
+		static constexpr double train_contribution{ 0.7 };
+		static constexpr double valid_contribution{ 0.15 };
+		static constexpr double test_contribution{ 0.15 };
+	};
+}
+
 namespace Helper {
 	constexpr enum class MLCase : const std::size_t {
 		Iris = 0,
@@ -40,7 +52,7 @@ namespace Helper {
 }
 
 namespace Helper {
-	const std::map<const MLCase, const std::string_view> MLPackDataFiles = {
+	std::map<MLCase, std::string_view> MLPackDataFiles = {
 		{Helper::MLCase::Iris, "iris_mlpack.csv"},
 		{Helper::MLCase::Wine, "wine_mlpack.csv"},
 		{Helper::MLCase::Cancer, "cancer_mlpack.csv"},
