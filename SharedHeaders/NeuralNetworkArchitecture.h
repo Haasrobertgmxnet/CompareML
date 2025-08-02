@@ -11,11 +11,11 @@
 
 namespace Helper {
 	std::map<MLCase, std::vector<size_t>> ArchMap = { 
-		{MLCase::Iris, {4, 3, 3}}, 
-		{Helper::MLCase::Wine, {13, 16, 9, 6, 3}},
-		{Helper::MLCase::Cancer, {30, 36, 24, 12, 6, 2}},
-		{Helper::MLCase::Diabetes, {8, 12, 6, 2}},
-		{Helper::MLCase::Ionosphere, {34, 40, 28, 16, 8, 2}}
+		{MLCase::Iris, {4, 6, 3}}, 
+		{MLCase::Wine, {13, 16, 9, 6, 3}},
+		{MLCase::Cancer, {30, 36, 24, 12, 6, 2}},
+		{MLCase::Diabetes, {8, 12, 6, 2}},
+		{MLCase::Ionosphere, {34, 40, 28, 16, 8, 2}}
 	};
 }
 
@@ -83,7 +83,7 @@ namespace Helper {
 		// Timer object for measuring the execution time
 		Timer tim;
 		std::vector<uint8_t> treated_cases{};
-		for (uint8_t&& j : { 0, 1, 3, 4, 5 }) {
+		for (uint8_t&& j : { 0, 1, 2, 3, 4 }) {
 			const MLCase currentCase{ static_cast<const Helper::MLCase>(j) };
 			if (!DataConfigAll[currentCase].isActive) {
 				continue;

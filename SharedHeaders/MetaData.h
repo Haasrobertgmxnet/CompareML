@@ -8,17 +8,16 @@
 
 namespace Helper {
 	const struct PipelineConfig {
-		static constexpr size_t epochs{ 500 };
-		static constexpr size_t batch_size{ 64 }; // Number of data points in each iteration of the solver
-		static constexpr float learning_rate{ 0.01f }; // Step size of the optimizer which is the initial learning rate
-		static constexpr double train_contribution{ 0.7 };
-		static constexpr double valid_contribution{ 0.15 };
-		static constexpr double test_contribution{ 0.15 };
+		static constexpr bool do_Glorot_init{ false };
+		static constexpr size_t batch_size{ 32 }; // Number of data points in each iteration of the solver
+		//static constexpr double train_contribution{ 0.7 };
+		//static constexpr double valid_contribution{ 0.15 };
+		//static constexpr double test_contribution{ 0.15 };
 	};
 }
 
 namespace Helper {
-	constexpr enum class MLCase : const std::size_t {
+	enum class MLCase : const std::size_t {
 		Iris = 0,
 		Wine = 1,
 		Ionosphere = 2,
@@ -31,23 +30,25 @@ namespace Helper {
 	struct DataConfig {
 		bool isActive{};
 		std::string_view name{};
+		size_t epochs{ };
+		double learningRate{ };
 	};
 
 	std::map<MLCase, DataConfig> DataConfigAll = {
-		{Helper::MLCase::Iris, {.isActive = true, .name ="Iris"}},
-		{Helper::MLCase::Wine, {.isActive = true, .name = "Wine"}},
-		{Helper::MLCase::Cancer, {.isActive = false, .name = "Cancer"}},
-		{Helper::MLCase::Diabetes, {.isActive = false, .name = "Diabetes"}},
-		{Helper::MLCase::Ionosphere, {.isActive = false, .name = "Ionosphere"}},
+		{Helper::MLCase::Iris, {.isActive = false, .name ="Iris", .epochs = 500, .learningRate = 0.01}},
+		{Helper::MLCase::Wine, {.isActive = true, .name = "Wine", .epochs = 500, .learningRate = 0.01}},
+		{Helper::MLCase::Cancer, {.isActive = false, .name = "Cancer", .epochs = 500, .learningRate = 0.01}},
+		{Helper::MLCase::Diabetes, {.isActive = false, .name = "Diabetes", .epochs = 500, .learningRate = 0.01}},
+		{Helper::MLCase::Ionosphere, {.isActive = false, .name = "Ionosphere", .epochs = 500, .learningRate = 0.01}},
 	};
 }
 namespace Helper {
 	std::map<MLCase, std::string_view> OpenNNDataFiles = {
-		{Helper::MLCase::Iris, "iris_opennn.csv"},
-		{Helper::MLCase::Wine, "wine_opennn.csv"},
+		{Helper::MLCase::Iris, "iris_opennn_shuffled.csv"},
+		{Helper::MLCase::Wine, "wine_opennn_shuffled.csv"},
 		{Helper::MLCase::Cancer, "cancer_opennn.csv"},
 		{Helper::MLCase::Diabetes, "diabetes_opennn.csv"},
-		{Helper::MLCase::Ionosphere, "ionosphere_opennn.csv"}
+		{Helper::MLCase::Ionosphere, "ionosphere_opennn_shuffled.csv"}
 	};
 }
 

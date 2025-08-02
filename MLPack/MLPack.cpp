@@ -1,6 +1,6 @@
-﻿// #define __GENCODE_CLAUDE_AI
+﻿#define __STABLE
 
-#ifdef __GENCODE_CLAUDE_AI
+#ifdef __STABLE
 
 #include <mlpack.hpp>
 #include <mlpack/core.hpp>
@@ -15,6 +15,9 @@ using namespace mlpack::ann;
 using namespace arma;
 
 #include "MetaData.h"
+#include "NeuralNetworkArchitecture.h"
+#include "PathNameService.h"
+
 using hpc = Helper::PipelineConfig;
 
 namespace Helper {
@@ -28,35 +31,16 @@ namespace Helper {
 
             std::cout << "Layer " << i << ": "
                 << typeid(*layer).name() << std::endl;
-
-            //if (layer->Parameters().n_elem > 0)
-            //{
-            //    std::cout << "  Parametergröße: "
-            //        << layer->Parameters().n_rows << " x "
-            //        << layer->Parameters().n_cols << std::endl;
-            //}
-
-            //if (layer->InputDimensions().size() > 0)
-            //{
-            //    std::cout << "  Input-Dimension: "
-            //        << layer->InputDimensions().size() << std::endl;
-            //}
-
-            //if (layer->OutputDimensions().size() > 0)
-            //{
-            //    std::cout << "  Output-Dimension: "
-            //        << layer->OutputDimensions().size() << std::endl;
-            //}
         }
         std::cout << std::endl;
     }
 }
 
 
-template<typename ErrorType>
-void testModel(FFN<ErrorType, GlorotInitialization> model, const mat& X, const mat& Y) {
+template<typename ErrorType, typename InitializationType>
+void testModel(FFN<ErrorType, InitializationType> model, const arma::mat& X, const arma::mat& Y) {
     // Teste das Modell
-    mat predictions;
+    arma::mat predictions;
     model.Predict(X, predictions);
 
     // Konvertiere Vorhersagen zu Klassenindizes
@@ -96,8 +80,8 @@ void testModel(FFN<ErrorType, GlorotInitialization> model, const mat& X, const m
     std::cout << "Mean Squared Error: " << testLoss << std::endl;
 }
 
-void randomTrainTestSplit(const mat& X, const mat& labels,
-    mat& trainX, mat& trainY, mat& testX, mat& testY,
+void randomTrainTestSplit(const arma::mat& X, const arma::mat& labels,
+    arma::mat& trainX, arma::mat& trainY, arma::mat& testX, arma::mat& testY,
     double trainRatio = 0.8) {
 
     size_t totalSamples = X.n_cols;
@@ -113,48 +97,60 @@ void randomTrainTestSplit(const mat& X, const mat& labels,
     std::mt19937 gen(rd());
     std::shuffle(indices.begin(), indices.end(), gen);
 
-    // Reserviere Speicher für die Matrizen
+    // Reserviere Speicher für die arma::matrizen
     trainX.set_size(X.n_rows, trainSize);
     trainY.set_size(labels.n_rows, trainSize);
     testX.set_size(X.n_rows, testSize);
     testY.set_size(labels.n_rows, testSize);
 
-    // Fülle die Trainingsmatrizen
+    // Fülle die Trainingsarma::matrizen
     for (size_t i = 0; i < trainSize; ++i) {
         trainX.col(i) = X.col(indices[i]);
         trainY.col(i) = labels.col(indices[i]);
     }
 
-    // Fülle die Testmatrizen
+    // Fülle die Testarma::matrizen
     for (size_t i = 0; i < testSize; ++i) {
         testX.col(i) = X.col(indices[trainSize + i]);
         testY.col(i) = labels.col(indices[trainSize + i]);
     }
 }
 
-void classifyIris()
-{
-    // Lade die Iris-Daten
-    mat data;
-    bool loaded = data::Load("../data/mlpack/iris_mlpack.csv", data, true);
+void mlpack_pipeline(const Helper::MLCase currentCase) {
 
-    if (!loaded) {
-        std::cerr << "Fehler beim Laden der Datei iris_mlpack.csv" << std::endl;
+    auto currentConfig = Helper::DataConfigAll[currentCase];
+    if (!currentConfig.isActive) {
         return;
     }
 
-    std::cout << "Daten geladen: " << data.n_rows << " Features, "
-        << data.n_cols << " Samples" << std::endl;
+    // Labeled dataset that contains data for training is loaded from CSV file,
+    // rows represent features, columns represent data points.
+    // Read data
+    auto pathRes = Helper::PathNameService::findFileAboveCurrentDirectory(std::string{ Helper::MLPackDataFiles[currentCase] });
+    if (!pathRes.has_value()) {
+        return;
+    }
+    auto pathName = std::string{ pathRes.value() };
+
+    arma::mat dataset{};
+    data::Load(pathName, dataset, true);
+    std::cout << "File " << std::string{ pathRes.value() } << " loaded!\n";
+
+    std::cout << "Daten geladen: " << dataset.n_rows << " Features, "
+        << dataset.n_cols << " Samples" << std::endl;
 
     // Separiere Features und Labels
-    mat X = data.rows(0, 3);  // Erste 4 Spalten: Features
-    mat y = data.row(4);      // Letzte Spalte: Labels
+    arma::mat X = dataset.rows(0, dataset.n_rows - 2);  // First n-1 rows: Features
+    arma::mat y = dataset.row(dataset.n_rows - 1);
 
-    // Konvertiere Labels zu One-Hot-Encoding für 3 Klassen
-    mat labels = zeros<mat>(3, y.n_cols);
+    // Produce One-Hot Coding
+    size_t numClasses = Helper::getOutputNodes(currentCase);
+
+    // Convert Labels to One-Hot-Encoding für numClasses Klassen
+    arma::mat labels = zeros<arma::mat>(numClasses, y.n_cols);
     for (size_t i = 0; i < y.n_cols; ++i)
     {
-        labels((int)y(0, i), i) = 1.0;
+        labels(static_cast<int>(y(0, i)), i) = 1.0;
     }
 
     // Normalisiere die Features (Min-Max Normalisierung)
@@ -170,50 +166,58 @@ void classifyIris()
 
     // Teile Daten in Training und Test auf (80/20)
     // Variablen für Train/Test-Split
-    mat trainX, trainY, testX, testY;
+    arma::mat trainX, trainY, testX, testY;
 
     // Führe den zufälligen Split durch (80/20)
     randomTrainTestSplit(X, labels, trainX, trainY, testX, testY, 0.8);
 
-    // Erstelle das neuronale Netzwerk
-    FFN<MeanSquaredError, GlorotInitialization> model;
-    // FFN<CrossEntropyError, GlorotInitialization> model;
+    // Create the neural network
+    // FFN<MeanSquaredError, GlorotInitialization> model;
+    FFN<MeanSquaredError, RandomInitialization> model;   
 
-    // Alternative: Explizite Dimensionsangabe für Linear-Layer
-    model.Add<Linear>(trainX.n_rows);  // Input: Anzahl Features, Hidden: 8 Neuronen
-    model.Add<ReLU>();                     // Aktivierungsfunktion
-    model.Add<Linear>(3);
-    model.Add<ReLU>();
-    model.Add<Linear>(trainY.n_rows);  // Output: Anzahl Klassen
-    model.Add<Softmax>();                  // 
+    // Input layer
+    std::cout << "Input layer with " << Helper::getInputNodes(currentCase) << " nodes.\n";
+    model.Add<Linear>(Helper::getInputNodes(currentCase));
+    // model.Add<ReLU>();
+
+    // Add the hidden layers to the neural network
+    for (auto&& item : Helper::getHiddenNodes(currentCase)) {
+        std::cout << "Hidden layer with " << item << " nodes.\n";
+        model.Add<Linear>(item);
+        // the activation function - here it is ReLU, i.e. x for x>=0 and 0 for x<0
+        model.Add<ReLU>();
+    }
+
+    // Output layer
+    std::cout << "Output layer with " << Helper::getOutputNodes(currentCase) << " nodes.\n";
+    model.Add<Linear>(Helper::getOutputNodes(currentCase));
+    model.Add<Softmax>();
 
     Helper::inspectModel(model);
 
-    // Konfiguriere ADAM Optimizer (vereinfachte Syntax)
-    //ens::Adam optimizer(0.01,     // Lernrate
-    //    64,
-    //    0.9,        // Beta1
-    //    0.999,      // Beta2
-    //    1e-8,       // Epsilon
-    //    trainX.n_cols * 500,  // Max Iterationen
-    //    1e-9);      // Toleranz
-
     // Set parameters for the Adam optimizer.
     ens::Adam optimizer(
-        hpc::learning_rate,  // Step size of the optimizer.
+        currentConfig.learningRate,  // Step size of the optimizer.
         hpc::batch_size, // Batch size. Number of data points that are used in each
         // iteration.
-        0.9,        // Exponential decay rate for the first moment estimates.
-        0.999, // Exponential decay rate for the weighted infinity norm estimates.
+        0.9,        // Exponential decay rate for the first moment estiarma::mates.
+        0.999, // Exponential decay rate for the weighted infinity norm estiarma::mates.
         1e-8,  // Value used to initialise the mean squared gradient parameter.
-        hpc::epochs * trainX.n_cols, // Max number of iterations.
+        currentConfig.epochs * trainX.n_cols, // Max number of iterations.
         1e-8,           // Tolerance.
         true);
 
     std::cout << "Starte Training..." << std::endl;
 
-    // Trainiere das Modell
-    model.Train(trainX, trainY, optimizer);
+    try {
+        Helper::Timer tim;
+        // Trainiere das Modell
+        model.Train(trainX, trainY, optimizer);
+        std::cout << "Training time (ms): " << tim.getDuration() << std::endl;
+    }
+    catch (std::exception& ex) {
+        std::cout << ex.what() << std::endl;
+    }
 
     std::cout << "Training abgeschlossen!" << std::endl;
 
@@ -224,14 +228,13 @@ void classifyIris()
 
     std::cout << "Checke Testdaten" << std::endl;
     testModel<>(model, testX, testY);
-
 }
 
 // Hauptfunktion für Demonstration
 int main()
 {
     try {
-        classifyIris();
+        Helper::calc(mlpack_pipeline);
     }
     catch (const std::exception& e) {
         std::cerr << "Fehler: " << e.what() << std::endl;
@@ -296,19 +299,19 @@ void randomTrainTestSplit(const arma::mat& X, const arma::mat& labels,
     std::mt19937 gen(rd());
     std::shuffle(indices.begin(), indices.end(), gen);
 
-    // Reserviere Speicher für die Matrizen
+    // Reserviere Speicher für die arma::matrizen
     trainX.set_size(X.n_rows, trainSize);
     trainY.set_size(labels.n_rows, trainSize);
     testX.set_size(X.n_rows, testSize);
     testY.set_size(labels.n_rows, testSize);
 
-    // Fülle die Trainingsmatrizen
+    // Fülle die Trainingsarma::matrizen
     for (size_t i = 0; i < trainSize; ++i) {
         trainX.col(i) = X.col(indices[i]);
         trainY.col(i) = labels.col(indices[i]);
     }
 
-    // Fülle die Testmatrizen
+    // Fülle die Testarma::matrizen
     for (size_t i = 0; i < testSize; ++i) {
         testX.col(i) = X.col(indices[trainSize + i]);
         testY.col(i) = labels.col(indices[trainSize + i]);
@@ -404,7 +407,7 @@ void mlpack_pipeline(const Helper::MLCase currentCase)
     auto has_headers = bool{ false };
     auto headerLessDataset = arma::mat{ dataset };
     if (has_headers) {
-            dataset.submat(0, 1, dataset.n_rows - 1, dataset.n_cols - 1);
+            dataset.subarma::mat(0, 1, dataset.n_rows - 1, dataset.n_cols - 1);
     }
 
     // Splitting the complete dataset on training and validation parts.
@@ -412,8 +415,8 @@ void mlpack_pipeline(const Helper::MLCase currentCase)
 
     //data::Split(headerLessDataset, train, test, 0.2);
 
-    //arma::mat trainX = train.submat(0, 0, train.n_rows - 2, train.n_cols - 1);
-    //arma::mat testX = test.submat(0, 0, test.n_rows - 2, test.n_cols - 1);
+    //arma::mat trainX = train.subarma::mat(0, 0, train.n_rows - 2, train.n_cols - 1);
+    //arma::mat testX = test.subarma::mat(0, 0, test.n_rows - 2, test.n_cols - 1);
 
     
 
@@ -428,8 +431,8 @@ void mlpack_pipeline(const Helper::MLCase currentCase)
     //    return trainY;
     //    };
 
-    auto X = headerLessDataset.submat(0, 0, headerLessDataset.n_rows - 2, headerLessDataset.n_cols - 1);
-    auto y = headerLessDataset.submat(headerLessDataset.n_rows - 1, 0, headerLessDataset.n_rows - 1, headerLessDataset.n_cols - 1);
+    auto X = headerLessDataset.subarma::mat(0, 0, headerLessDataset.n_rows - 2, headerLessDataset.n_cols - 1);
+    auto y = headerLessDataset.subarma::mat(headerLessDataset.n_rows - 1, 0, headerLessDataset.n_rows - 1, headerLessDataset.n_cols - 1);
 
     // Konvertiere Labels zu One-Hot-Encoding für 3 Klassen
     arma::mat labels = zeros<arma::mat>(numClasses, y.n_cols);
@@ -492,8 +495,8 @@ void mlpack_pipeline(const Helper::MLCase currentCase)
         hpc::learning_rate,  // Step size of the optimizer.
         hpc::batch_size, // Batch size. Number of data points that are used in each
         // iteration.
-        0.9,        // Exponential decay rate for the first moment estimates.
-        0.999, // Exponential decay rate for the weighted infinity norm estimates.
+        0.9,        // Exponential decay rate for the first moment estiarma::mates.
+        0.999, // Exponential decay rate for the weighted infinity norm estiarma::mates.
         1e-8,  // Value used to initialise the mean squared gradient parameter.
         hpc::epochs * trainX.n_cols, // Max number of iterations.
         1e-8,           // Tolerance.

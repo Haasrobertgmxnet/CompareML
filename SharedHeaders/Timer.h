@@ -9,20 +9,20 @@ namespace Helper {
     public:
         Timer() : outputAtExit(true)
         {
-            start = std::chrono::system_clock::now();
+            start = std::chrono::steady_clock::now();
         }
 
         void setOutputAtExit(bool _outputAtExit) {
             outputAtExit = _outputAtExit;
         }
 
-        std::chrono::system_clock::time_point getStart() const {
+        std::chrono::steady_clock::time_point getStart() const {
             return start;
         }
 
         std::chrono::milliseconds getDuration() const {
             return std::chrono::duration_cast<std::chrono::milliseconds>(
-                std::chrono::system_clock::now() - start);
+                std::chrono::steady_clock::now() - start);
         }
 
         ~Timer()
@@ -35,7 +35,7 @@ namespace Helper {
 
     private:
         bool outputAtExit{};
-        std::chrono::system_clock::time_point start{};
+        std::chrono::steady_clock::time_point start{};
     };
 }
 
