@@ -3,8 +3,7 @@
 [🇩🇪 Deutsch](#deutsch) | [🇬🇧 English](#english) | [🇪🇸 Español](#espa%C3%B1ol)
 
 ---
-
-## 🇩🇪 Deutsch
+## Deutsch
 
 ### OpenNN vs. MLPack – Vergleich neuronaler Netzwerkbibliotheken in C++
 Dieses Repository dokumentiert einen praktischen Vergleich zwischen zwei populären C++-Bibliotheken für maschinelles Lernen: [OpenNN](https://www.opennn.net/) und [MLPack](https://www.mlpack.org/), mit Fokus auf neuronale Netzwerke (Multilayer Perceptrons).
@@ -89,7 +88,7 @@ Der Zweck dieses Projekts ist es, **Leistung** und **Trainingsqualität** der be
 
 ---
 
-## 🇬🇧 English
+## English
 
 ### OpenNN vs. MLPack – Comparison of Neural Network Libraries in C++
 This repository documents a practical comparison between two popular C++ machine learning libraries...
@@ -176,7 +175,7 @@ The goal of this project is to evaluate **performance** and **training quality**
 
 ---
 
-## 🇪🇸 Español
+## Español
 
 ### OpenNN vs. MLPack – Comparación de bibliotecas de redes neuronales en C++
 Este repositorio documenta una comparación práctica entre dos bibliotecas populares de aprendizaje automático en C++: [OpenNN](https://www.opennn.net/) y [MLPack](https://www.mlpack.org/), con enfoque en redes neuronales (Perceptrones Multicapa).
