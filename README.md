@@ -12,7 +12,7 @@ Dieses Repository dokumentiert einen praktischen Vergleich zwischen zwei populä
 
 ### Zielsetzung
 
-Der Zweck dieses Projekts ist es, **Leistung**, **Benutzerfreundlichkeit**, **Flexibilität** und **Trainingsqualität** der beiden Bibliotheken im Kontext von Deep Learning zu bewerten. Dabei werden identische Modelle und Datensätze verwendet, um faire Vergleiche zu ermöglichen.
+Der Zweck dieses Projekts ist es, **Leistung** und **Trainingsqualität** der beiden Bibliotheken im Kontext von Deep Learning zu bewerten. Dabei werden -so weit es geht- identische Modelle und Datensätze verwendet, um aussagekräftige und sinnvolle Vergleiche zu ermöglichen.
 
 ### Inhalt
 
@@ -38,14 +38,65 @@ Der Zweck dieses Projekts ist es, **Leistung**, **Benutzerfreundlichkeit**, **Fl
 - Armadillo (für MLPack)
 - Eigen (für OpenNN)
 
-### Benchmark-Ergebnisse (Beispiel)
+### Benchmark-Ergebnisse für Iris-Datensatz
 
-| Modell      | Datensatz | Bibliothek | Genauigkeit | Trainingszeit |
-|-------------|-----------|------------|-------------|----------------|
-| MLP (2 Lagen)| Iris      | OpenNN     | 96,7 %      | 0,8 s          |
-| MLP (2 Lagen)| Iris      | MLPack     | 97,3 %      | 0,3 s          |
-| MLP (3 Lagen)| MNIST     | OpenNN     | 91,2 %      | 34,5 s         |
-| MLP (3 Lagen)| MNIST     | MLPack     | 92,5 %      | 21,7 s         |
+#### Daten
+   * Wikipedia: https://de.wikipedia.org/wiki/Schwertlilien-Datensatz
+   * UCI ML Repository: https://archive.ics.uci.edu/dataset/53/iris
+   * Kaggle: https://www.kaggle.com/datasets/uciml/iris
+   * Standard, geshuffled
+	
+#### Modell
+   * Feed-Forward NN (Multilayer Perceptron) mit 3 Schichten
+      1. Input-Layer mit 4 Knoten
+	  2. Hidden-Layer mit 6 Knoten, Rectified Linear Unit (ReLU)
+	  3. Output-Layer mit 3 Knoten (One-Hot-kodierte Targets), Softmax
+	  
+#### Löser
+   * Adaptive Moment Estimation (ADAM)
+   * Batch Size: 32
+   * Initiale Lernrate: 0.01
+   * Anzahl Epchen: 500
+	  
+#### Ergebnis
+
+| Größe  | MLPack  | OpenNN  |
+| Training Time (ms)  | 273  | 1062  |
+| Training Accuracy  | 99.17%  | 82.22%  |
+| Training MSE  | 0.0210  | 0.0939  |
+| Testing Accuracy  | 96.67%  | 76.67%  |
+| Testing MSE  | 0.0393  | -  |
+
+### Benchmark-Ergebnisse für Wine-Datensatz
+
+#### Daten
+   * UCI ML Repository: https://archive.ics.uci.edu/dataset/109/wine
+   * Kaggle: https://www.kaggle.com/datasets/yasserh/wine-quality-dataset
+   * Standard, geshuffled
+	
+#### Modell
+   * Feed-Forward NN (Multilayer Perceptron) mit 3 Schichten
+      1. Input-Layer mit 13 Knoten
+	  2. Hidden-Layer mit 16 Knoten, Rectified Linear Unit (ReLU)
+	  3. Hidden-Layer mit 9 Knoten, Rectified Linear Unit (ReLU)
+	  4. Hidden-Layer mit 6 Knoten, Rectified Linear Unit (ReLU)
+	  5. Output-Layer mit 3 Knoten (One-Hot-kodierte Targets), Softmax
+	  
+#### Löser
+   * Adaptive Moment Estimation (ADAM)
+   * Batch Size: 32
+   * Initiale Lernrate: 0.01
+   * Anzahl Epchen: 500
+	  
+#### Ergebnis
+
+| Größe  | MLPack  | OpenNN  |
+| Training Time (ms)  | 595  | 1414  |
+| Training Accuracy  | 100%  | 79.63%  |
+| Training MSE  | 1.0946e-05  | 0.0915  |
+| Testing Accuracy  | 97.22%  | 65.71%  |
+| Testing MSE  | 0.0220  | -  |
+
 
 ### Fazit
 
@@ -58,108 +109,3 @@ Der Zweck dieses Projekts ist es, **Leistung**, **Benutzerfreundlichkeit**, **Fl
 
 ---
 
-#### _English_
-
-## OpenNN vs. MLPack – Comparison of Neural Network Libraries in C++
-
-This repository documents a practical comparison between two popular C++ machine learning libraries: [OpenNN](https://www.opennn.net/) and [MLPack](https://www.mlpack.org/), with a focus on neural networks (Multilayer Perceptrons).
-
-### Objective
-
-The goal is to compare **performance**, **usability**, **flexibility**, and **training quality** of both libraries using identical models and datasets for fairness.
-
-### Contents
-
-- `/opennn/`: Implementation and experiments with OpenNN
-- `/mlpack/`: Implementation and experiments with MLPack
-- `/data/`: Datasets used
-- `/results/`: Metrics, training times, plots
-
-### Comparison Criteria
-
-| Criterion           | OpenNN                             | MLPack                                |
-|---------------------|-------------------------------------|----------------------------------------|
-| API Style           | Object-oriented, XML config         | Functional, template-based             |
-| Documentation       | Good, partially outdated            | Extensive & actively maintained        |
-| Training Performance| Fast, CPU-focused                   | Very fast, uses Armadillo              |
-| Model Complexity    | Limited layer types                 | Richer support (CNNs, RNNs etc.)       |
-| Deployment          | Pure C++ dependency                 | Lightweight, optional bindings         |
-
-### Requirements
-
-- C++17 or newer
-- CMake >= 3.10
-- Armadillo (for MLPack)
-- Eigen (for OpenNN)
-
-### Benchmark Results (Example)
-
-| Model       | Dataset  | Library | Accuracy | Training Time |
-|-------------|----------|---------|----------|----------------|
-| MLP (2-layers)| Iris    | OpenNN  | 96.7%    | 0.8s           |
-| MLP (2-layers)| Iris    | MLPack  | 97.3%    | 0.3s           |
-| MLP (3-layers)| MNIST   | OpenNN  | 91.2%    | 34.5s          |
-| MLP (3-layers)| MNIST   | MLPack  | 92.5%    | 21.7s          |
-
-### Conclusion
-
-- **OpenNN** is suitable for small, CPU-oriented projects.
-- **MLPack** offers more flexibility and better performance for complex models.
-
-### License
-
-<!--MIT License-->
-
----
-
-#### _Español_
-
-## OpenNN vs. MLPack – Comparación de bibliotecas de redes neuronales en C++
-
-Este repositorio documenta una comparación práctica entre dos bibliotecas populares de aprendizaje automático en C++: [OpenNN](https://www.opennn.net/) y [MLPack](https://www.mlpack.org/), enfocándose en redes neuronales (perceptrones multicapa).
-
-## Objetivo
-
-El objetivo es comparar el **rendimiento**, la **usabilidad**, la **flexibilidad** y la **calidad del entrenamiento** de ambas bibliotecas usando modelos y conjuntos de datos idénticos para asegurar una comparación justa.
-
-## Contenido
-
-- `/opennn/`: Implementación y experimentos con OpenNN
-- `/mlpack/`: Implementación y experimentos con MLPack
-- `/data/`: Conjuntos de datos utilizados
-- `/results/`: Métricas, tiempos de entrenamiento, gráficos
-
-## Criterios de Comparación
-
-| Criterio            | OpenNN                             | MLPack                                |
-|---------------------|-------------------------------------|----------------------------------------|
-| Estilo de API       | Orientado a objetos, config XML     | Funcional, basado en templates         |
-| Documentación       | Buena, algo desactualizada          | Extensa y mantenida activamente        |
-| Rendimiento         | Rápido, orientado a CPU             | Muy rápido, usa Armadillo              |
-| Complejidad del modelo| Tipos de capas limitados           | Más variedad (CNNs, RNNs, etc.)        |
-| Despliegue          | Solo depende de C++                 | Ligera, con enlaces opcionales         |
-
-## Requisitos
-
-- C++17 o superior
-- CMake >= 3.10
-- Armadillo (para MLPack)
-- Eigen (para OpenNN)
-
-## Resultados de Benchmark (Ejemplo)
-
-| Modelo       | Dataset | Biblioteca | Precisión | Tiempo de Entrenamiento |
-|--------------|---------|------------|-----------|--------------------------|
-| MLP (2 capas)| Iris    | OpenNN     | 96.7%     | 0.8s                     |
-| MLP (2 capas)| Iris    | MLPack     | 97.3%     | 0.3s                     |
-| MLP (3 capas)| MNIST   | OpenNN     | 91.2%     | 34.5s                    |
-| MLP (3 capas)| MNIST   | MLPack     | 92.5%     | 21.7s                    |
-
-## Conclusión
-
-- **OpenNN** es útil para proyectos pequeños orientados a CPU.
-- **MLPack** proporciona mayor flexibilidad y rendimiento para modelos más complejos.
-
-## Licencia
-
-<!--Licencia MIT-->
