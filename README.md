@@ -1,6 +1,6 @@
 
-### Language / Sprache / Idioma:
-[🇩🇪 Deutsch](#deutsch) | [🇬🇧 English](#english) | [🇪🇸 Español](#espa%C3%B1ol)
+### Sprache / Idioma:
+[🇩🇪 Deutsch](#deutsch) | [🇪🇸 Español](#espa%C3%B1ol) | [🇬🇧 OMG](#omg) 
 
 ---
 ## Deutsch
@@ -88,93 +88,6 @@ Der Zweck dieses Projekts ist es, **Leistung** und **Trainingsqualität** der be
 
 ---
 
-## English
-
-### OpenNN vs. MLPack – Comparison of Neural Network Libraries in C++
-This repository documents a practical comparison between two popular C++ machine learning libraries...
-
-[Truncated for space – will continue in next steps]
-
-### Objective
-The goal of this project is to evaluate **performance** and **training quality** of both libraries in the context of deep learning. Identical models and datasets are used as far as possible to ensure meaningful comparisons.
-
-### Content
-- `/opennn/`: Implementation and experiments with OpenNN  
-- `/mlpack/`: Implementation and experiments with MLPack  
-- `/data/`: Used datasets  
-- `/results/`: Metrics, training times, plots  
-
-### Comparison Criteria
-| Criterion            | OpenNN                              | MLPack                                 |
-|----------------------|--------------------------------------|----------------------------------------|
-| API Style            | Object-oriented, XML-based config   | Functional, template-based             |
-| Documentation        | Good, partially outdated            | Extensive and actively maintained      |
-| Training Performance | Fast, CPU-focused                   | Very fast, uses Armadillo              |
-| Model Complexity     | Limited layer types supported       | More extensive (CNNs, RNNs, etc.)      |
-| Deployment           | Pure C++ dependency                 | Lightweight, optional bindings         |
-
-### Prerequisites
-- C++17 or higher  
-- CMake >= 3.10  
-- Armadillo (for MLPack)  
-- Eigen (for OpenNN)  
-
-### Benchmark Results for Iris Dataset
-#### Data
-- Wikipedia: https://en.wikipedia.org/wiki/Iris_flower_data_set  
-- UCI ML Repository: https://archive.ics.uci.edu/dataset/53/iris  
-- Kaggle: https://www.kaggle.com/datasets/uciml/iris  
-
-#### Model
-- Feed-forward NN (Multilayer Perceptron) with 3 layers:
-  1. Input layer with 4 nodes  
-  2. Hidden layer with 6 nodes, ReLU  
-  3. Output layer with 3 nodes (one-hot targets), Softmax  
-
-#### Solver
-- ADAM  
-- Batch size: 32  
-- Initial learning rate: 0.01  
-- Epochs: 500  
-
-#### Result
-| Metric             | MLPack  | OpenNN  |
-|--------------------|---------|---------|
-| Training Time (ms) | 273     | 1062    |
-| Training Accuracy  | 99.17%  | 82.22%  |
-| Training MSE       | 0.0210  | 0.0939  |
-| Testing Accuracy   | 96.67%  | 76.67%  |
-| Testing MSE        | 0.0393  | -       |
-
-### Benchmark Results for Wine Dataset
-#### Data
-- UCI ML Repository: https://archive.ics.uci.edu/dataset/109/wine  
-- Kaggle: https://www.kaggle.com/datasets/yasserh/wine-quality-dataset  
-
-#### Model
-- Feed-forward NN with 5 layers (13-16-9-6-3)
-
-#### Solver
-- ADAM  
-- Batch size: 32  
-- Initial learning rate: 0.01  
-- Epochs: 500  
-
-#### Result
-| Metric             | MLPack     | OpenNN  |
-|--------------------|------------|---------|
-| Training Time (ms) | 595        | 1414    |
-| Training Accuracy  | 100%       | 79.63%  |
-| Training MSE       | 1.0946e-05 | 0.0915  |
-| Testing Accuracy   | 97.22%     | 65.71%  |
-| Testing MSE        | 0.0220     | -       |
-
-### Conclusion
-- **OpenNN** is well-suited for smaller, CPU-focused projects.  
-- **MLPack** offers more flexibility and better performance for more complex models.
-
----
-
 ## Español
 
 ### OpenNN vs. MLPack – Comparación de bibliotecas de redes neuronales en C++
@@ -258,3 +171,89 @@ El propósito de este proyecto es evaluar el **rendimiento** y la **calidad del 
 - **OpenNN** es adecuado para proyectos más pequeños centrados en CPU.  
 - **MLPack** ofrece mayor flexibilidad y mejor rendimiento en modelos complejos.
 
+---
+
+## OMG
+
+### OpenNN vs. MLPack – Comparison of Neural Network Libraries in C++
+This repository documents a practical comparison between two popular C++ machine learning libraries...
+
+[Truncated for space – will continue in next steps]
+
+### Objective
+The goal of this project is to evaluate **performance** and **training quality** of both libraries in the context of deep learning. Identical models and datasets are used as far as possible to ensure meaningful comparisons.
+
+### Content
+- `/opennn/`: Implementation and experiments with OpenNN  
+- `/mlpack/`: Implementation and experiments with MLPack  
+- `/data/`: Used datasets  
+- `/results/`: Metrics, training times, plots  
+
+### Comparison Criteria
+| Criterion            | OpenNN                              | MLPack                                 |
+|----------------------|--------------------------------------|----------------------------------------|
+| API Style            | Object-oriented, XML-based config   | Functional, template-based             |
+| Documentation        | Good, partially outdated            | Extensive and actively maintained      |
+| Training Performance | Fast, CPU-focused                   | Very fast, uses Armadillo              |
+| Model Complexity     | Limited layer types supported       | More extensive (CNNs, RNNs, etc.)      |
+| Deployment           | Pure C++ dependency                 | Lightweight, optional bindings         |
+
+### Prerequisites
+- C++17 or higher  
+- CMake >= 3.10  
+- Armadillo (for MLPack)  
+- Eigen (for OpenNN)  
+
+### Benchmark Results for Iris Dataset
+#### Data
+- Wikipedia: https://en.wikipedia.org/wiki/Iris_flower_data_set  
+- UCI ML Repository: https://archive.ics.uci.edu/dataset/53/iris  
+- Kaggle: https://www.kaggle.com/datasets/uciml/iris  
+
+#### Model
+- Feed-forward NN (Multilayer Perceptron) with 3 layers:
+  1. Input layer with 4 nodes  
+  2. Hidden layer with 6 nodes, ReLU  
+  3. Output layer with 3 nodes (one-hot targets), Softmax  
+
+#### Solver
+- ADAM  
+- Batch size: 32  
+- Initial learning rate: 0.01  
+- Epochs: 500  
+
+#### Result
+| Metric             | MLPack  | OpenNN  |
+|--------------------|---------|---------|
+| Training Time (ms) | 273     | 1062    |
+| Training Accuracy  | 99.17%  | 82.22%  |
+| Training MSE       | 0.0210  | 0.0939  |
+| Testing Accuracy   | 96.67%  | 76.67%  |
+| Testing MSE        | 0.0393  | -       |
+
+### Benchmark Results for Wine Dataset
+#### Data
+- UCI ML Repository: https://archive.ics.uci.edu/dataset/109/wine  
+- Kaggle: https://www.kaggle.com/datasets/yasserh/wine-quality-dataset  
+
+#### Model
+- Feed-forward NN with 5 layers (13-16-9-6-3)
+
+#### Solver
+- ADAM  
+- Batch size: 32  
+- Initial learning rate: 0.01  
+- Epochs: 500  
+
+#### Result
+| Metric             | MLPack     | OpenNN  |
+|--------------------|------------|---------|
+| Training Time (ms) | 595        | 1414    |
+| Training Accuracy  | 100%       | 79.63%  |
+| Training MSE       | 1.0946e-05 | 0.0915  |
+| Testing Accuracy   | 97.22%     | 65.71%  |
+| Testing MSE        | 0.0220     | -       |
+
+### Conclusion
+- **OpenNN** is well-suited for smaller, CPU-focused projects.  
+- **MLPack** offers more flexibility and better performance for more complex models.
